@@ -32,7 +32,7 @@ document.addEventListener('fullscreenchange', () => {
 class Bug {
     constructor() {
         this.element = document.createElement('img');
-        this.element.src = '/sprites/bug.png'; 
+        this.element.src = 'sprites/bug.png'; 
         this.element.className = 'bug';
         
         const side = Math.floor(Math.random() * 4);
