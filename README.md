@@ -5,6 +5,8 @@
 A simple fullscreen web animation where bugs swarm into the screen from
 all sides.
 
+## Play it now: https://pemmyz.github.io/js_bugsim/
+
 ## Description
 
 Bug Invasion is a lightweight HTML, CSS, and JavaScript project that
