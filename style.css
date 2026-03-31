@@ -1,0 +1,34 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; 
+    background-color: #ecf0f1;
+    font-family: sans-serif;
+}
+
+#garden {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+.bug {
+    position: absolute;
+    width: 50px; 
+    height: auto;
+    pointer-events: none;
+    will-change: transform, left, top;
+}
+
+.ui {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: #7f8c8d;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 10;
+}
