@@ -1,42 +1,66 @@
 const garden = document.getElementById('garden');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 const bugs = [];
 
+// --- FULLSCREEN LOGIC ---
+fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari/iOS */
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+            document.documentElement.msRequestFullscreen();
+        }
+        fullscreenBtn.innerText = "EXIT FULLSCREEN";
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        fullscreenBtn.innerText = "ENTER FULLSCREEN";
+    }
+});
+
+// Update button text if user exits fullscreen via system keys (Esc)
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        fullscreenBtn.innerText = "ENTER FULLSCREEN";
+    }
+});
+
+// --- BUG LOGIC ---
 class Bug {
     constructor() {
         this.element = document.createElement('img');
         this.element.src = '/sprites/bug.png'; 
         this.element.className = 'bug';
         
-        // Randomly choose a starting side: 0=top, 1=right, 2=bottom, 3=left
         const side = Math.floor(Math.random() * 4);
         const padding = 100; 
         
-        if (side === 0) { // Start above Top
+        if (side === 0) { // Top
             this.x = Math.random() * window.innerWidth;
             this.y = -padding;
-        } else if (side === 1) { // Start beyond Right
+        } else if (side === 1) { // Right
             this.x = window.innerWidth + padding;
             this.y = Math.random() * window.innerHeight;
-        } else if (side === 2) { // Start below Bottom
+        } else if (side === 2) { // Bottom
             this.x = Math.random() * window.innerWidth;
             this.y = window.innerHeight + padding;
-        } else { // Start beyond Left
+        } else { // Left
             this.x = -padding;
             this.y = Math.random() * window.innerHeight;
         }
 
-        // Velocity: Give them a speed between 1 and 3 pixels per frame
-        // The ternary operators ensure they generally move toward the screen area
+        // Random velocity toward the center
         this.vx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
         this.vy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
 
         /**
-         * CALCULATE ROTATION
-         * 1. Math.atan2 gets the angle of movement in radians.
-         * 2. Convert to degrees (* 180 / Math.PI).
-         * 3. Add 90 because the sprite naturally points "Up" (North).
-         * 4. Add 45 because of your specific requirement for a 45° clockwise base rotation.
-         * Total offset = 135 degrees.
+         * ROTATION CALCULATION:
+         * 1. Math.atan2 gets movement angle.
+         * 2. + 90 because sprite "Up" is 0 deg.
+         * 3. + 45 because of your base rotation requirement.
          */
         this.rotation = (Math.atan2(this.vy, this.vx) * 180 / Math.PI) + 135;
 
@@ -49,16 +73,15 @@ class Bug {
         this.y += this.vy;
         this.updatePosition();
 
-        // Remove bug if it wanders too far off screen (200px buffer)
-        if (this.x < -200 || this.x > window.innerWidth + 200 || 
-            this.y < -200 || this.y > window.innerHeight + 200) {
+        // Kill bug if it leaves screen
+        if (this.x < -300 || this.x > window.innerWidth + 300 || 
+            this.y < -300 || this.y > window.innerHeight + 300) {
             return false;
         }
         return true;
     }
 
     updatePosition() {
-        // We use transform for both movement and rotation for better performance
         this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
     }
 
@@ -68,8 +91,7 @@ class Bug {
 }
 
 function spawnBug() {
-    // Keep a maximum of 50 bugs on screen to maintain performance
-    if (bugs.length < 50) {
+    if (bugs.length < 40) {
         bugs.push(new Bug());
     }
 }
@@ -85,8 +107,10 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// Spawn a bug every 700 milliseconds
-setInterval(spawnBug, 700);
-
-// Start the animation loop
+setInterval(spawnBug, 800);
 animate();
+
+// Handle window resizing to keep bounds clean
+window.addEventListener('resize', () => {
+    // Current bugs stay, but bounds refresh automatically in next update cycle
+});

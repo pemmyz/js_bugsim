@@ -5,7 +5,7 @@ body, html {
     height: 100%;
     overflow: hidden; 
     background-color: #ecf0f1;
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 #garden {
@@ -14,21 +14,47 @@ body, html {
     position: relative;
 }
 
+/* UI Positioning */
+.ui-container {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Space between button and text */
+    z-index: 100;
+}
+
+.fullscreen-btn {
+    padding: 10px 15px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.fullscreen-btn:active {
+    background-color: #34495e;
+    transform: translateY(1px);
+}
+
+.status-text {
+    color: #7f8c8d;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
 .bug {
     position: absolute;
     width: 50px; 
     height: auto;
     pointer-events: none;
-    will-change: transform, left, top;
-}
-
-.ui {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    color: #7f8c8d;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    z-index: 10;
+    will-change: transform;
 }
