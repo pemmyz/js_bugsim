@@ -13,7 +13,6 @@ body, html {
     width: 100vw;
     height: 100vh;
     position: relative;
-    /* Replace 'your-1080p-image.jpg' with your actual image path */
     background-image: url('your-1080p-image.jpg'); 
     background-size: 100% 100%;      
     background-position: center; 
@@ -32,7 +31,8 @@ body, html {
     transition: opacity 0.3s ease; 
 }
 
-.ui-container.hidden {
+/* Common Hidden State for UI elements */
+.ui-container.hidden, .options-btn.hidden {
     opacity: 0;
     pointer-events: none; 
 }
@@ -90,7 +90,7 @@ body, html {
 
 /* Dark Mode Overrides */
 body.dark-mode {
-    background-color: #323339; /* Updated Color */
+    background-color: #323339; /* Requested Color */
 }
 
 /* Makes bugs black when dark mode is active */
@@ -106,10 +106,6 @@ body.dark-mode .status-text {
 body.dark-mode .options-menu {
     background: rgba(44, 62, 80, 0.95);
     color: #ecf0f1;
-}
-
-body.dark-mode .options-menu h3 {
-    border-bottom: 2px solid #7f8c8d;
 }
 
 /* Options Button (Bottom Left) */
@@ -128,7 +124,8 @@ body.dark-mode .options-menu h3 {
     letter-spacing: 1px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     z-index: 100;
-    transition: background-color 0.2s;
+    /* transition: opacity added for the hide-on-click effect */
+    transition: opacity 0.3s ease, background-color 0.2s, transform 0.2s; 
 }
 
 .options-btn:hover {
@@ -198,11 +195,4 @@ body.dark-mode .options-menu h3 {
     cursor: pointer;
     font-weight: bold;
     text-transform: uppercase;
-}
-
-/* Hide UI elements automatically in Fullscreen */
-:fullscreen .hide-in-fullscreen,
-:-webkit-full-screen .hide-in-fullscreen,
-:-ms-fullscreen .hide-in-fullscreen {
-    display: none !important;
 }

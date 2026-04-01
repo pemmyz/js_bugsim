@@ -1,10 +1,11 @@
 const garden = document.getElementById('garden');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const uiContainer = document.querySelector('.ui-container');
+const optionsBtn = document.getElementById('optionsBtn');
+const optionsMenu = document.getElementById('optionsMenu');
 const bugs = [];
 
 // --- 1. CONFIGURATION ---
-// These values are controlled by the Options Menu
 const config = {
     amount: window.innerWidth <= 768 ? 80 : 120,
     speed: 1,
@@ -28,25 +29,27 @@ fullscreenBtn.addEventListener('click', () => {
             document.webkitExitFullscreen();
         }
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
-        uiContainer.classList.remove('hidden'); 
     }
 });
 
-// Event listeners to handle manual exit (Esc key)
+// Handle UI visibility on exit
 const handleFullscreenExit = () => {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
         uiContainer.classList.remove('hidden');
+        optionsBtn.classList.remove('hidden');
     }
 };
 document.addEventListener('fullscreenchange', handleFullscreenExit);
 document.addEventListener('webkitfullscreenchange', handleFullscreenExit);
 
-// Toggle top UI visibility when clicking the screen during Fullscreen
+// Toggle UI (Top UI AND Options Button) when clicking screen in Fullscreen
 document.addEventListener('click', (e) => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    if (isFullscreen && e.target !== fullscreenBtn) {
+    // Check that we aren't clicking the buttons themselves
+    if (isFullscreen && e.target !== fullscreenBtn && e.target !== optionsBtn && !optionsMenu.contains(e.target)) {
         uiContainer.classList.toggle('hidden');
+        optionsBtn.classList.toggle('hidden');
     }
 });
 
@@ -74,11 +77,8 @@ class Bug {
             this.y = Math.random() * window.innerHeight;
         }
 
-        // Random base velocity
         this.baseVx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
         this.baseVy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
-
-        // Rotation calculation based on direction
         this.rotation = (Math.atan2(this.baseVy, this.baseVx) * 180 / Math.PI) + 135;
 
         garden.appendChild(this.element);
@@ -86,12 +86,10 @@ class Bug {
     }
 
     update() {
-        // Position update using global speed multiplier
         this.x += this.baseVx * config.speed;
         this.y += this.baseVy * config.speed;
         this.updatePosition();
 
-        // Bounds check
         if (this.x < -300 || this.x > window.innerWidth + 300 || 
             this.y < -300 || this.y > window.innerHeight + 300) {
             return false;
@@ -100,7 +98,6 @@ class Bug {
     }
 
     updatePosition() {
-        // Apply transform including rotation and global size scale
         this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg) scale(${config.size})`;
     }
 
@@ -128,10 +125,7 @@ function animate() {
 }
 
 // --- 4. OPTIONS MENU UI INTERACTION ---
-const optionsBtn = document.getElementById('optionsBtn');
-const optionsMenu = document.getElementById('optionsMenu');
 const closeOptionsBtn = document.getElementById('closeOptionsBtn');
-
 const amountInput = document.getElementById('amountInput');
 const amountDisplay = document.getElementById('amountDisplay');
 const speedInput = document.getElementById('speedInput');
@@ -140,15 +134,12 @@ const sizeInput = document.getElementById('sizeInput');
 const sizeDisplay = document.getElementById('sizeDisplay');
 const darkModeToggle = document.getElementById('darkModeToggle');
 
-// Sync UI with initial config values
 amountInput.value = config.amount;
 amountDisplay.innerText = config.amount;
 
 function toggleOptions() {
-    // Only toggle if not in fullscreen (CSS also hides it, but this is a safety check)
-    if (!document.fullscreenElement) {
-        optionsMenu.classList.toggle('hidden');
-    }
+    // Only allow opening settings if UI is not hidden or not in fullscreen
+    optionsMenu.classList.toggle('hidden');
 }
 
 optionsBtn.addEventListener('click', (e) => {
@@ -158,40 +149,32 @@ optionsBtn.addEventListener('click', (e) => {
 
 closeOptionsBtn.addEventListener('click', toggleOptions);
 
-// Press 'O' key to toggle options
 window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'o') {
         toggleOptions();
     }
 });
 
-// Slider: Bug Amount
 amountInput.addEventListener('input', (e) => {
     config.amount = parseInt(e.target.value);
     amountDisplay.innerText = config.amount;
-    
-    // If user reduces amount, remove bugs immediately
     while (bugs.length > config.amount) {
         const bug = bugs.pop();
         bug.destroy();
     }
 });
 
-// Slider: Speed
 speedInput.addEventListener('input', (e) => {
     config.speed = parseFloat(e.target.value);
     speedDisplay.innerText = config.speed + 'x';
 });
 
-// Slider: Size
 sizeInput.addEventListener('input', (e) => {
     config.size = parseFloat(e.target.value);
     sizeDisplay.innerText = config.size + 'x';
-    // Update all existing bugs to new size instantly
     bugs.forEach(bug => bug.updatePosition());
 });
 
-// Toggle: Dark Mode
 darkModeToggle.addEventListener('change', (e) => {
     config.isDarkMode = e.target.checked;
     if (config.isDarkMode) {
@@ -202,10 +185,5 @@ darkModeToggle.addEventListener('change', (e) => {
 });
 
 // --- 5. INITIALIZATION ---
-// Spawn initial set and start animation loop
 setInterval(spawnBug, 200);
 animate();
-
-window.addEventListener('resize', () => {
-    // Logic for handling screen size changes if needed
-});
