@@ -3,61 +3,54 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const uiContainer = document.querySelector('.ui-container');
 const bugs = [];
 
-// --- FULLSCREEN LOGIC ---
+// --- 1. CONFIGURATION ---
+// These values are controlled by the Options Menu
+const config = {
+    amount: window.innerWidth <= 768 ? 80 : 120,
+    speed: 1,
+    size: 1,
+    isDarkMode: false
+};
+
+// --- 2. FULLSCREEN LOGIC ---
 fullscreenBtn.addEventListener('click', () => {
-    // Check if we are NOT in fullscreen
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari/iOS */
+        } else if (document.documentElement.webkitRequestFullscreen) {
             document.documentElement.webkitRequestFullscreen();
-        } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
-            document.documentElement.msRequestFullscreen();
         }
         fullscreenBtn.innerText = "EXIT FULLSCREEN";
     } else {
-        // We ARE in fullscreen, so exit
         if (document.exitFullscreen) {
             document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
+        } else if (document.webkitExitFullscreen) {
             document.webkitExitFullscreen();
         }
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
-        uiContainer.classList.remove('hidden'); // Ensure UI is visible when exiting
+        uiContainer.classList.remove('hidden'); 
     }
 });
 
-// Handle standard fullscreen exit (like pressing Esc)
-document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
+// Event listeners to handle manual exit (Esc key)
+const handleFullscreenExit = () => {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
-        uiContainer.classList.remove('hidden'); // Force UI back on
+        uiContainer.classList.remove('hidden');
     }
-});
+};
+document.addEventListener('fullscreenchange', handleFullscreenExit);
+document.addEventListener('webkitfullscreenchange', handleFullscreenExit);
 
-// Handle Safari specific fullscreen exit
-document.addEventListener('webkitfullscreenchange', () => {
-    if (!document.webkitFullscreenElement) {
-        fullscreenBtn.innerText = "ENTER FULLSCREEN";
-        uiContainer.classList.remove('hidden'); // Force UI back on
-    }
-});
-
-// Toggle UI visibility when touching/clicking the screen in Fullscreen
+// Toggle top UI visibility when clicking the screen during Fullscreen
 document.addEventListener('click', (e) => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    
-    // Only toggle if we are currently in fullscreen mode
-    if (isFullscreen) {
-        // Prevent toggling if the user specifically clicked the fullscreen button
-        if (e.target !== fullscreenBtn) {
-            uiContainer.classList.toggle('hidden');
-        }
+    if (isFullscreen && e.target !== fullscreenBtn) {
+        uiContainer.classList.toggle('hidden');
     }
 });
 
-
-// --- BUG LOGIC ---
+// --- 3. BUG LOGIC ---
 class Bug {
     constructor() {
         this.element = document.createElement('img');
@@ -81,27 +74,24 @@ class Bug {
             this.y = Math.random() * window.innerHeight;
         }
 
-        // Random velocity toward the center
-        this.vx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
-        this.vy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
+        // Random base velocity
+        this.baseVx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
+        this.baseVy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
 
-        /**
-         * ROTATION CALCULATION:
-         * 1. Math.atan2 gets movement angle.
-         * 2. + 135 adjusts for sprite orientation and base rotation.
-         */
-        this.rotation = (Math.atan2(this.vy, this.vx) * 180 / Math.PI) + 135;
+        // Rotation calculation based on direction
+        this.rotation = (Math.atan2(this.baseVy, this.baseVx) * 180 / Math.PI) + 135;
 
         garden.appendChild(this.element);
         this.updatePosition();
     }
 
     update() {
-        this.x += this.vx;
-        this.y += this.vy;
+        // Position update using global speed multiplier
+        this.x += this.baseVx * config.speed;
+        this.y += this.baseVy * config.speed;
         this.updatePosition();
 
-        // Kill bug if it leaves screen bounds safely
+        // Bounds check
         if (this.x < -300 || this.x > window.innerWidth + 300 || 
             this.y < -300 || this.y > window.innerHeight + 300) {
             return false;
@@ -110,7 +100,8 @@ class Bug {
     }
 
     updatePosition() {
-        this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+        // Apply transform including rotation and global size scale
+        this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg) scale(${config.size})`;
     }
 
     destroy() {
@@ -118,15 +109,8 @@ class Bug {
     }
 }
 
-// Dynamic bug limit based on screen size
-function getMaxBugs() {
-    // Mobile (<= 768px): Double the original 40 = 80
-    // Desktop: Greatly increased to fill the area with smaller bugs = 120
-    return window.innerWidth <= 768 ? 80 : 120;
-}
-
 function spawnBug() {
-    if (bugs.length < getMaxBugs()) {
+    if (bugs.length < config.amount) {
         bugs.push(new Bug());
     }
 }
@@ -137,18 +121,91 @@ function animate() {
         if (!isAlive) {
             bugs[i].destroy();
             bugs.splice(i, 1);
-            // Whenever one leaves, immediately spawn a new one
             spawnBug();
         }
     }
     requestAnimationFrame(animate);
 }
 
-// Start game loops (Interval lowered to 200ms so the larger amounts spawn faster initially)
+// --- 4. OPTIONS MENU UI INTERACTION ---
+const optionsBtn = document.getElementById('optionsBtn');
+const optionsMenu = document.getElementById('optionsMenu');
+const closeOptionsBtn = document.getElementById('closeOptionsBtn');
+
+const amountInput = document.getElementById('amountInput');
+const amountDisplay = document.getElementById('amountDisplay');
+const speedInput = document.getElementById('speedInput');
+const speedDisplay = document.getElementById('speedDisplay');
+const sizeInput = document.getElementById('sizeInput');
+const sizeDisplay = document.getElementById('sizeDisplay');
+const darkModeToggle = document.getElementById('darkModeToggle');
+
+// Sync UI with initial config values
+amountInput.value = config.amount;
+amountDisplay.innerText = config.amount;
+
+function toggleOptions() {
+    // Only toggle if not in fullscreen (CSS also hides it, but this is a safety check)
+    if (!document.fullscreenElement) {
+        optionsMenu.classList.toggle('hidden');
+    }
+}
+
+optionsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleOptions();
+});
+
+closeOptionsBtn.addEventListener('click', toggleOptions);
+
+// Press 'O' key to toggle options
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'o') {
+        toggleOptions();
+    }
+});
+
+// Slider: Bug Amount
+amountInput.addEventListener('input', (e) => {
+    config.amount = parseInt(e.target.value);
+    amountDisplay.innerText = config.amount;
+    
+    // If user reduces amount, remove bugs immediately
+    while (bugs.length > config.amount) {
+        const bug = bugs.pop();
+        bug.destroy();
+    }
+});
+
+// Slider: Speed
+speedInput.addEventListener('input', (e) => {
+    config.speed = parseFloat(e.target.value);
+    speedDisplay.innerText = config.speed + 'x';
+});
+
+// Slider: Size
+sizeInput.addEventListener('input', (e) => {
+    config.size = parseFloat(e.target.value);
+    sizeDisplay.innerText = config.size + 'x';
+    // Update all existing bugs to new size instantly
+    bugs.forEach(bug => bug.updatePosition());
+});
+
+// Toggle: Dark Mode
+darkModeToggle.addEventListener('change', (e) => {
+    config.isDarkMode = e.target.checked;
+    if (config.isDarkMode) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+});
+
+// --- 5. INITIALIZATION ---
+// Spawn initial set and start animation loop
 setInterval(spawnBug, 200);
 animate();
 
-// Handle window resizing to keep bounds clean
 window.addEventListener('resize', () => {
-    // Current bugs stay, but bounds refresh automatically in next update cycle
+    // Logic for handling screen size changes if needed
 });

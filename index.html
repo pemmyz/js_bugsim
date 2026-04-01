@@ -14,6 +14,36 @@
         <div class="status-text">Bugs are swarming...</div>
     </div>
 
+    <!-- NEW: Options Button -->
+    <button id="optionsBtn" class="options-btn hide-in-fullscreen">⚙️ OPTIONS (O)</button>
+
+    <!-- NEW: Options Menu -->
+    <div id="optionsMenu" class="options-menu hidden hide-in-fullscreen">
+        <h3>Settings</h3>
+        
+        <label>
+            Amount of Bugs: <span id="amountDisplay">120</span>
+            <input type="range" id="amountInput" min="5" max="300" step="5" value="120">
+        </label>
+        
+        <label>
+            Bug Speed: <span id="speedDisplay">1x</span>
+            <input type="range" id="speedInput" min="0.1" max="5" step="0.1" value="1">
+        </label>
+        
+        <label>
+            Bug Size: <span id="sizeDisplay">1x</span>
+            <input type="range" id="sizeInput" min="0.1" max="4" step="0.1" value="1">
+        </label>
+        
+        <label class="toggle-label">
+            Dark Mode
+            <input type="checkbox" id="darkModeToggle">
+        </label>
+        
+        <button id="closeOptionsBtn">Close</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
