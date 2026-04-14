@@ -10,8 +10,23 @@ const config = {
     amount: window.innerWidth <= 768 ? 80 : 120,
     speed: 1,
     size: 1,
-    isDarkMode: false
+    isDarkMode: false,
+    followMouse: false // Tracks if bugs should follow the cursor
 };
+
+// Global variables to track mouse/touch position
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+
+window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+window.addEventListener('touchmove', (e) => {
+    mouseX = e.touches[0].clientX;
+    mouseY = e.touches[0].clientY;
+});
 
 // --- 2. FULLSCREEN LOGIC ---
 fullscreenBtn.addEventListener('click', () => {
@@ -43,10 +58,9 @@ const handleFullscreenExit = () => {
 document.addEventListener('fullscreenchange', handleFullscreenExit);
 document.addEventListener('webkitfullscreenchange', handleFullscreenExit);
 
-// Toggle UI (Top UI AND Options Button) when clicking screen in Fullscreen
+// Toggle UI when clicking screen in Fullscreen
 document.addEventListener('click', (e) => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    // Check that we aren't clicking the buttons themselves
     if (isFullscreen && e.target !== fullscreenBtn && e.target !== optionsBtn && !optionsMenu.contains(e.target)) {
         uiContainer.classList.toggle('hidden');
         optionsBtn.classList.toggle('hidden');
@@ -79,17 +93,70 @@ class Bug {
 
         this.baseVx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
         this.baseVy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
-        this.rotation = (Math.atan2(this.baseVy, this.baseVx) * 180 / Math.PI) + 135;
+        
+        // Advanced Movement Properties for pathfinding
+        this.angle = Math.atan2(this.baseVy, this.baseVx);
+        this.speedMag = Math.sqrt(this.baseVx * this.baseVx + this.baseVy * this.baseVy);
+        
+        // Give each bug a slightly different turn radius (higher turnSpeed = tighter arc)
+        this.turnSpeed = 0.01 + Math.random() * 0.04; 
+        
+        // Cooldown timer to let them fly "past" the cursor without immediately orbiting
+        this.ignoreMouseFrames = 0;
+
+        this.rotation = (this.angle * 180 / Math.PI) + 135;
 
         garden.appendChild(this.element);
         this.updatePosition();
     }
 
     update() {
+        // Pathfinding Logic
+        if (config.followMouse) {
+            if (this.ignoreMouseFrames > 0) {
+                // If they are in cooldown (flew past cursor), keep flying straight
+                this.ignoreMouseFrames--;
+            } else {
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 120) {
+                    // Trigger flyby behavior when close: ignore cursor for ~120 frames (approx 2 seconds)
+                    // This makes them go past the cursor and continue heading in that direction
+                    this.ignoreMouseFrames = 120; 
+                } else {
+                    // Calculate target angle towards cursor
+                    const targetAngle = Math.atan2(dy, dx);
+                    
+                    // Difference between current angle and target angle
+                    let diff = targetAngle - this.angle;
+                    
+                    // Normalize the difference to roughly -PI to PI
+                    while (diff <= -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    
+                    // Steer toward the target forming an arc based on bug's unique turnSpeed
+                    if (Math.abs(diff) < this.turnSpeed) {
+                        this.angle = targetAngle;
+                    } else {
+                        this.angle += Math.sign(diff) * this.turnSpeed;
+                    }
+                    
+                    // Apply updated angle to velocities and visual rotation
+                    this.baseVx = Math.cos(this.angle) * this.speedMag;
+                    this.baseVy = Math.sin(this.angle) * this.speedMag;
+                    this.rotation = (this.angle * 180 / Math.PI) + 135;
+                }
+            }
+        }
+
+        // Apply speed
         this.x += this.baseVx * config.speed;
         this.y += this.baseVy * config.speed;
         this.updatePosition();
 
+        // Despawn if they go too far off screen
         if (this.x < -300 || this.x > window.innerWidth + 300 || 
             this.y < -300 || this.y > window.innerHeight + 300) {
             return false;
@@ -133,12 +200,12 @@ const speedDisplay = document.getElementById('speedDisplay');
 const sizeInput = document.getElementById('sizeInput');
 const sizeDisplay = document.getElementById('sizeDisplay');
 const darkModeToggle = document.getElementById('darkModeToggle');
+const followMouseToggle = document.getElementById('followMouseToggle');
 
 amountInput.value = config.amount;
 amountDisplay.innerText = config.amount;
 
 function toggleOptions() {
-    // Only allow opening settings if UI is not hidden or not in fullscreen
     optionsMenu.classList.toggle('hidden');
 }
 
@@ -182,6 +249,10 @@ darkModeToggle.addEventListener('change', (e) => {
     } else {
         document.body.classList.remove('dark-mode');
     }
+});
+
+followMouseToggle.addEventListener('change', (e) => {
+    config.followMouse = e.target.checked;
 });
 
 // --- 5. INITIALIZATION ---

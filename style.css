@@ -88,12 +88,10 @@ body, html {
    OPTIONS MENU & DARK MODE
    ========================================= */
 
-/* Dark Mode Overrides */
 body.dark-mode {
-    background-color: #323339; /* Requested Color */
+    background-color: #323339; 
 }
 
-/* Makes bugs black when dark mode is active */
 body.dark-mode .bug {
     filter: brightness(0);
 }
@@ -108,7 +106,6 @@ body.dark-mode .options-menu {
     color: #ecf0f1;
 }
 
-/* Options Button (Bottom Left) */
 .options-btn {
     position: fixed;
     bottom: 15px;
@@ -124,7 +121,6 @@ body.dark-mode .options-menu {
     letter-spacing: 1px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     z-index: 100;
-    /* transition: opacity added for the hide-on-click effect */
     transition: opacity 0.3s ease, background-color 0.2s, transform 0.2s; 
 }
 
@@ -132,7 +128,6 @@ body.dark-mode .options-menu {
     background-color: #3498db;
 }
 
-/* Options Menu Panel */
 .options-menu {
     position: fixed;
     bottom: 60px;
