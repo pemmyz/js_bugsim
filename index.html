@@ -34,16 +34,48 @@
             <input type="range" id="sizeInput" min="0.1" max="4" step="0.1" value="1">
         </label>
         
-        <!-- NEW: Follow Mouse Toggle -->
         <label class="toggle-label">
             Follow Mouse
             <input type="checkbox" id="followMouseToggle">
         </label>
         
         <label class="toggle-label">
-            Dark Mode
+            Dark Mode (Black Bugs)
             <input type="checkbox" id="darkModeToggle">
         </label>
+
+        <!-- NEW: Background & Colors Section -->
+        <div class="color-section">
+            <h3 class="section-title">Background & Colors</h3>
+            
+            <label class="toggle-label">
+                Invert Bug Colors
+                <input type="checkbox" id="invertBugsToggle">
+            </label>
+
+            <div class="quick-colors-container">
+                <span>Quick Backgrounds:</span>
+                <div class="quick-colors">
+                    <!-- Default Image -->
+                    <button class="quick-color-btn" id="btn-default-bg" style="background-color: #ecf0f1; display:flex; align-items:center; justify-content:center;" title="Default Image">🖼️</button>
+                    <!-- Basic Colors -->
+                    <button class="quick-color-btn" style="background-color: #ffffff;" data-color="#ffffff"></button>
+                    <button class="quick-color-btn" style="background-color: #ff0000;" data-color="#ff0000"></button>
+                    <button class="quick-color-btn" style="background-color: #00ff00;" data-color="#00ff00"></button>
+                    <button class="quick-color-btn" style="background-color: #0000ff;" data-color="#0000ff"></button>
+                    <!-- Grey BG + Black Bug -->
+                    <button class="quick-color-btn" id="btn-grey-black" style="background-color: #808080; display:flex; align-items:center; justify-content:center;" title="Grey BG + Black Bugs">
+                        <div style="width: 10px; height: 10px; background-color: black; border-radius: 50%;"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Color Picker -->
+            <label class="custom-color-label">
+                ➕ Custom Background Color
+                <input type="color" id="bgColorPicker" value="#ecf0f1">
+            </label>
+        </div>
         
         <button id="closeOptionsBtn">Close</button>
     </div>

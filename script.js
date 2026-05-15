@@ -11,43 +11,29 @@ const config = {
     speed: 1,
     size: 1,
     isDarkMode: false,
-    followMouse: false // Tracks if bugs should follow the cursor
+    followMouse: false,
+    invertBugs: false // Tracks if bugs should render with negative colors
 };
 
-// Global variables to track mouse/touch position
 let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
 
-window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
-
-window.addEventListener('touchmove', (e) => {
-    mouseX = e.touches[0].clientX;
-    mouseY = e.touches[0].clientY;
-});
+window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+window.addEventListener('touchmove', (e) => { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; });
 
 // --- 2. FULLSCREEN LOGIC ---
 fullscreenBtn.addEventListener('click', () => {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-            document.documentElement.webkitRequestFullscreen();
-        }
+        if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); } 
+        else if (document.documentElement.webkitRequestFullscreen) { document.documentElement.webkitRequestFullscreen(); }
         fullscreenBtn.innerText = "EXIT FULLSCREEN";
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        }
+        if (document.exitFullscreen) { document.exitFullscreen(); } 
+        else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
     }
 });
 
-// Handle UI visibility on exit
 const handleFullscreenExit = () => {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         fullscreenBtn.innerText = "ENTER FULLSCREEN";
@@ -58,7 +44,6 @@ const handleFullscreenExit = () => {
 document.addEventListener('fullscreenchange', handleFullscreenExit);
 document.addEventListener('webkitfullscreenchange', handleFullscreenExit);
 
-// Toggle UI when clicking screen in Fullscreen
 document.addEventListener('click', (e) => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     if (isFullscreen && e.target !== fullscreenBtn && e.target !== optionsBtn && !optionsMenu.contains(e.target)) {
@@ -77,33 +62,18 @@ class Bug {
         const side = Math.floor(Math.random() * 4);
         const padding = 100; 
         
-        if (side === 0) { // Top
-            this.x = Math.random() * window.innerWidth;
-            this.y = -padding;
-        } else if (side === 1) { // Right
-            this.x = window.innerWidth + padding;
-            this.y = Math.random() * window.innerHeight;
-        } else if (side === 2) { // Bottom
-            this.x = Math.random() * window.innerWidth;
-            this.y = window.innerHeight + padding;
-        } else { // Left
-            this.x = -padding;
-            this.y = Math.random() * window.innerHeight;
-        }
+        if (side === 0) { this.x = Math.random() * window.innerWidth; this.y = -padding; } 
+        else if (side === 1) { this.x = window.innerWidth + padding; this.y = Math.random() * window.innerHeight; } 
+        else if (side === 2) { this.x = Math.random() * window.innerWidth; this.y = window.innerHeight + padding; } 
+        else { this.x = -padding; this.y = Math.random() * window.innerHeight; }
 
         this.baseVx = (Math.random() - 0.5) * 2 + (this.x < 0 ? 2 : this.x > window.innerWidth ? -2 : 0);
         this.baseVy = (Math.random() - 0.5) * 2 + (this.y < 0 ? 2 : this.y > window.innerHeight ? -2 : 0);
         
-        // Advanced Movement Properties for pathfinding
         this.angle = Math.atan2(this.baseVy, this.baseVx);
         this.speedMag = Math.sqrt(this.baseVx * this.baseVx + this.baseVy * this.baseVy);
-        
-        // Give each bug a slightly different turn radius (higher turnSpeed = tighter arc)
         this.turnSpeed = 0.01 + Math.random() * 0.04; 
-        
-        // Cooldown timer to let them fly "past" the cursor without immediately orbiting
         this.ignoreMouseFrames = 0;
-
         this.rotation = (this.angle * 180 / Math.PI) + 135;
 
         garden.appendChild(this.element);
@@ -111,10 +81,8 @@ class Bug {
     }
 
     update() {
-        // Pathfinding Logic
         if (config.followMouse) {
             if (this.ignoreMouseFrames > 0) {
-                // If they are in cooldown (flew past cursor), keep flying straight
                 this.ignoreMouseFrames--;
             } else {
                 const dx = mouseX - this.x;
@@ -122,28 +90,17 @@ class Bug {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
                 if (dist < 120) {
-                    // Trigger flyby behavior when close: ignore cursor for ~120 frames (approx 2 seconds)
-                    // This makes them go past the cursor and continue heading in that direction
                     this.ignoreMouseFrames = 120; 
                 } else {
-                    // Calculate target angle towards cursor
                     const targetAngle = Math.atan2(dy, dx);
-                    
-                    // Difference between current angle and target angle
                     let diff = targetAngle - this.angle;
                     
-                    // Normalize the difference to roughly -PI to PI
                     while (diff <= -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
                     
-                    // Steer toward the target forming an arc based on bug's unique turnSpeed
-                    if (Math.abs(diff) < this.turnSpeed) {
-                        this.angle = targetAngle;
-                    } else {
-                        this.angle += Math.sign(diff) * this.turnSpeed;
-                    }
+                    if (Math.abs(diff) < this.turnSpeed) { this.angle = targetAngle; } 
+                    else { this.angle += Math.sign(diff) * this.turnSpeed; }
                     
-                    // Apply updated angle to velocities and visual rotation
                     this.baseVx = Math.cos(this.angle) * this.speedMag;
                     this.baseVy = Math.sin(this.angle) * this.speedMag;
                     this.rotation = (this.angle * 180 / Math.PI) + 135;
@@ -151,14 +108,11 @@ class Bug {
             }
         }
 
-        // Apply speed
         this.x += this.baseVx * config.speed;
         this.y += this.baseVy * config.speed;
         this.updatePosition();
 
-        // Despawn if they go too far off screen
-        if (this.x < -300 || this.x > window.innerWidth + 300 || 
-            this.y < -300 || this.y > window.innerHeight + 300) {
+        if (this.x < -300 || this.x > window.innerWidth + 300 || this.y < -300 || this.y > window.innerHeight + 300) {
             return false;
         }
         return true;
@@ -168,15 +122,11 @@ class Bug {
         this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg) scale(${config.size})`;
     }
 
-    destroy() {
-        this.element.remove();
-    }
+    destroy() { this.element.remove(); }
 }
 
 function spawnBug() {
-    if (bugs.length < config.amount) {
-        bugs.push(new Bug());
-    }
+    if (bugs.length < config.amount) { bugs.push(new Bug()); }
 }
 
 function animate() {
@@ -199,28 +149,24 @@ const speedInput = document.getElementById('speedInput');
 const speedDisplay = document.getElementById('speedDisplay');
 const sizeInput = document.getElementById('sizeInput');
 const sizeDisplay = document.getElementById('sizeDisplay');
-const darkModeToggle = document.getElementById('darkModeToggle');
 const followMouseToggle = document.getElementById('followMouseToggle');
+
+// Color controls elements
+const darkModeToggle = document.getElementById('darkModeToggle');
+const invertBugsToggle = document.getElementById('invertBugsToggle');
+const bgColorPicker = document.getElementById('bgColorPicker');
+const quickColorBtns = document.querySelectorAll('.quick-color-btn[data-color]');
+const btnDefaultBg = document.getElementById('btn-default-bg');
+const btnGreyBlack = document.getElementById('btn-grey-black');
 
 amountInput.value = config.amount;
 amountDisplay.innerText = config.amount;
 
-function toggleOptions() {
-    optionsMenu.classList.toggle('hidden');
-}
+function toggleOptions() { optionsMenu.classList.toggle('hidden'); }
 
-optionsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleOptions();
-});
-
+optionsBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleOptions(); });
 closeOptionsBtn.addEventListener('click', toggleOptions);
-
-window.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'o') {
-        toggleOptions();
-    }
-});
+window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'o') toggleOptions(); });
 
 amountInput.addEventListener('input', (e) => {
     config.amount = parseInt(e.target.value);
@@ -242,19 +188,65 @@ sizeInput.addEventListener('input', (e) => {
     bugs.forEach(bug => bug.updatePosition());
 });
 
-darkModeToggle.addEventListener('change', (e) => {
-    config.isDarkMode = e.target.checked;
-    if (config.isDarkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
+followMouseToggle.addEventListener('change', (e) => { config.followMouse = e.target.checked; });
+
+// --- 5. COLOR & BACKGROUND LOGIC ---
+
+// Updates specific bug filter styles (Black bugs)
+function setDarkMode(isDark) {
+    config.isDarkMode = isDark;
+    darkModeToggle.checked = isDark;
+    if (isDark) document.body.classList.add('dark-mode');
+    else document.body.classList.remove('dark-mode');
+}
+
+// Updates negative bug filter styles (Invert bugs)
+function setInvertBugs(isInvert) {
+    config.invertBugs = isInvert;
+    invertBugsToggle.checked = isInvert;
+    if (isInvert) document.body.classList.add('invert-bugs');
+    else document.body.classList.remove('invert-bugs');
+}
+
+// Sets a flat background color (removing the image)
+function setBackgroundColor(color) {
+    garden.style.backgroundImage = 'none';
+    garden.style.backgroundColor = color;
+}
+
+// Restores default image
+function restoreDefaultBackground() {
+    garden.style.backgroundImage = ''; // Removes inline style, falls back to CSS
+    garden.style.backgroundColor = '';
+}
+
+// Event Listeners for Filters
+darkModeToggle.addEventListener('change', (e) => setDarkMode(e.target.checked));
+invertBugsToggle.addEventListener('change', (e) => setInvertBugs(e.target.checked));
+
+// Event Listeners for Custom Color Picker
+bgColorPicker.addEventListener('input', (e) => setBackgroundColor(e.target.value));
+
+// Event Listeners for Standard Quick Colors
+quickColorBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        setBackgroundColor(e.target.getAttribute('data-color'));
+    });
 });
 
-followMouseToggle.addEventListener('change', (e) => {
-    config.followMouse = e.target.checked;
+// Default Image Quick-select
+btnDefaultBg.addEventListener('click', () => {
+    restoreDefaultBackground();
 });
 
-// --- 5. INITIALIZATION ---
+// Grey Colors + Black Bugs Quick-select
+btnGreyBlack.addEventListener('click', () => {
+    setBackgroundColor('#808080'); // Grey
+    setDarkMode(true);             // Make bugs black
+    setInvertBugs(false);          // Ensure invert is off to keep them black
+});
+
+
+// --- 6. INITIALIZATION ---
 setInterval(spawnBug, 200);
 animate();
