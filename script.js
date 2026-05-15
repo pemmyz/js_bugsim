@@ -10,9 +10,10 @@ const config = {
     amount: window.innerWidth <= 768 ? 80 : 120,
     speed: 1,
     size: 1,
-    isDarkMode: false,
     followMouse: false,
-    invertBugs: false // Tracks if bugs should render with negative colors
+    isDarkMode: false,
+    invertBugs: false,
+    negativeBg: false // Tracks if bugs should be negative of background
 };
 
 let mouseX = window.innerWidth / 2;
@@ -154,6 +155,7 @@ const followMouseToggle = document.getElementById('followMouseToggle');
 // Color controls elements
 const darkModeToggle = document.getElementById('darkModeToggle');
 const invertBugsToggle = document.getElementById('invertBugsToggle');
+const negativeBgToggle = document.getElementById('negativeBgToggle');
 const bgColorPicker = document.getElementById('bgColorPicker');
 const quickColorBtns = document.querySelectorAll('.quick-color-btn[data-color]');
 const btnDefaultBg = document.getElementById('btn-default-bg');
@@ -196,22 +198,45 @@ followMouseToggle.addEventListener('change', (e) => { config.followMouse = e.tar
 function setDarkMode(isDark) {
     config.isDarkMode = isDark;
     darkModeToggle.checked = isDark;
-    if (isDark) document.body.classList.add('dark-mode');
-    else document.body.classList.remove('dark-mode');
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        if (config.negativeBg) setNegativeBgMode(false); // Turn off negative bg if turning this on
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
 }
 
 // Updates negative bug filter styles (Invert bugs)
 function setInvertBugs(isInvert) {
     config.invertBugs = isInvert;
     invertBugsToggle.checked = isInvert;
-    if (isInvert) document.body.classList.add('invert-bugs');
-    else document.body.classList.remove('invert-bugs');
+    if (isInvert) {
+        document.body.classList.add('invert-bugs');
+        if (config.negativeBg) setNegativeBgMode(false); // Turn off negative bg if turning this on
+    } else {
+        document.body.classList.remove('invert-bugs');
+    }
+}
+
+// Updates mathematical negative-to-background styling
+function setNegativeBgMode(isNegative) {
+    config.negativeBg = isNegative;
+    negativeBgToggle.checked = isNegative;
+    if (isNegative) {
+        document.body.classList.add('negative-bg-mode');
+        // Turn off other filters to prevent conflicts
+        setDarkMode(false);
+        setInvertBugs(false);
+    } else {
+        document.body.classList.remove('negative-bg-mode');
+    }
 }
 
 // Sets a flat background color (removing the image)
 function setBackgroundColor(color) {
     garden.style.backgroundImage = 'none';
     garden.style.backgroundColor = color;
+    bgColorPicker.value = color; // keep picker synced
 }
 
 // Restores default image
@@ -223,6 +248,7 @@ function restoreDefaultBackground() {
 // Event Listeners for Filters
 darkModeToggle.addEventListener('change', (e) => setDarkMode(e.target.checked));
 invertBugsToggle.addEventListener('change', (e) => setInvertBugs(e.target.checked));
+negativeBgToggle.addEventListener('change', (e) => setNegativeBgMode(e.target.checked));
 
 // Event Listeners for Custom Color Picker
 bgColorPicker.addEventListener('input', (e) => setBackgroundColor(e.target.value));
@@ -243,9 +269,9 @@ btnDefaultBg.addEventListener('click', () => {
 btnGreyBlack.addEventListener('click', () => {
     setBackgroundColor('#808080'); // Grey
     setDarkMode(true);             // Make bugs black
-    setInvertBugs(false);          // Ensure invert is off to keep them black
+    setInvertBugs(false);          // Ensure invert is off
+    setNegativeBgMode(false);      // Ensure negative is off
 });
-
 
 // --- 6. INITIALIZATION ---
 setInterval(spawnBug, 200);
