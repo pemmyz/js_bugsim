@@ -103,11 +103,17 @@ body.dark-mode.invert-bugs .bug {
     filter: brightness(0) invert(1);
 }
 
-/* NEW: Negative of Background */
+/* Negative of Background */
 /* Makes the bug pure white, then mathematically subtracts the background color to create a perfect negative */
 body.negative-bg-mode .bug {
     filter: brightness(0) invert(1) !important;
     mix-blend-mode: difference;
+}
+
+/* NEW: Custom brightness for bugs on black background */
+body.light-bug-mode .bug {
+    filter: brightness(0) invert(1) brightness(var(--bug-brightness, 1)) !important;
+    mix-blend-mode: normal;
 }
 
 body.dark-mode .status-text {
@@ -155,7 +161,8 @@ body.dark-mode .status-text {
 }
 
 body.dark-mode .options-menu,
-body.negative-bg-mode .options-menu {
+body.negative-bg-mode .options-menu,
+body.light-bug-mode .options-menu {
     background: rgba(44, 62, 80, 0.95);
     color: #ecf0f1;
 }

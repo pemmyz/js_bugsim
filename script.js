@@ -161,6 +161,13 @@ const quickColorBtns = document.querySelectorAll('.quick-color-btn[data-color]')
 const btnDefaultBg = document.getElementById('btn-default-bg');
 const btnGreyBlack = document.getElementById('btn-grey-black');
 
+// NEW ELEMENTS
+const btnBlackWhite = document.getElementById('btn-black-white');
+const greySliderContainer = document.getElementById('greySliderContainer');
+const blackSliderContainer = document.getElementById('blackSliderContainer');
+const greyBgSlider = document.getElementById('greyBgSlider');
+const bugBrightnessSlider = document.getElementById('bugBrightnessSlider');
+
 amountInput.value = config.amount;
 amountDisplay.innerText = config.amount;
 
@@ -200,7 +207,8 @@ function setDarkMode(isDark) {
     darkModeToggle.checked = isDark;
     if (isDark) {
         document.body.classList.add('dark-mode');
-        if (config.negativeBg) setNegativeBgMode(false); // Turn off negative bg if turning this on
+        if (config.negativeBg) setNegativeBgMode(false);
+        setLightBugMode(false);
     } else {
         document.body.classList.remove('dark-mode');
     }
@@ -212,7 +220,8 @@ function setInvertBugs(isInvert) {
     invertBugsToggle.checked = isInvert;
     if (isInvert) {
         document.body.classList.add('invert-bugs');
-        if (config.negativeBg) setNegativeBgMode(false); // Turn off negative bg if turning this on
+        if (config.negativeBg) setNegativeBgMode(false);
+        setLightBugMode(false);
     } else {
         document.body.classList.remove('invert-bugs');
     }
@@ -227,16 +236,36 @@ function setNegativeBgMode(isNegative) {
         // Turn off other filters to prevent conflicts
         setDarkMode(false);
         setInvertBugs(false);
+        setLightBugMode(false);
     } else {
         document.body.classList.remove('negative-bg-mode');
     }
+}
+
+// Updates Light Bug Mode (For the Black BG button)
+function setLightBugMode(isLight) {
+    if (isLight) {
+        document.body.classList.add('light-bug-mode');
+        setDarkMode(false);
+        setInvertBugs(false);
+        setNegativeBgMode(false);
+    } else {
+        document.body.classList.remove('light-bug-mode');
+    }
+}
+
+// Hides specific quick color sliders
+function hideQuickSliders() {
+    greySliderContainer.style.display = 'none';
+    blackSliderContainer.style.display = 'none';
+    setLightBugMode(false);
 }
 
 // Sets a flat background color (removing the image)
 function setBackgroundColor(color) {
     garden.style.backgroundImage = 'none';
     garden.style.backgroundColor = color;
-    bgColorPicker.value = color; // keep picker synced
+    bgColorPicker.value = color.startsWith('#') ? color : bgColorPicker.value;
 }
 
 // Restores default image
@@ -251,26 +280,60 @@ invertBugsToggle.addEventListener('change', (e) => setInvertBugs(e.target.checke
 negativeBgToggle.addEventListener('change', (e) => setNegativeBgMode(e.target.checked));
 
 // Event Listeners for Custom Color Picker
-bgColorPicker.addEventListener('input', (e) => setBackgroundColor(e.target.value));
+bgColorPicker.addEventListener('input', (e) => {
+    setBackgroundColor(e.target.value);
+    hideQuickSliders();
+});
 
 // Event Listeners for Standard Quick Colors
 quickColorBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
         setBackgroundColor(e.target.getAttribute('data-color'));
+        hideQuickSliders();
     });
 });
 
 // Default Image Quick-select
 btnDefaultBg.addEventListener('click', () => {
     restoreDefaultBackground();
+    hideQuickSliders();
 });
 
 // Grey Colors + Black Bugs Quick-select
 btnGreyBlack.addEventListener('click', () => {
-    setBackgroundColor('#808080'); // Grey
+    const val = greyBgSlider.value;
+    setBackgroundColor(`rgb(${val}, ${val}, ${val})`);
+    
     setDarkMode(true);             // Make bugs black
     setInvertBugs(false);          // Ensure invert is off
     setNegativeBgMode(false);      // Ensure negative is off
+    setLightBugMode(false);        // Ensure light bug is off
+    
+    // Show grey slider, hide black slider
+    greySliderContainer.style.display = 'block';
+    blackSliderContainer.style.display = 'none';
+});
+
+// Black BG + White/Grey Bugs Quick-select
+btnBlackWhite.addEventListener('click', () => {
+    setBackgroundColor('#000000'); // Black
+    
+    setLightBugMode(true);         // Enable light bug mode
+    document.body.style.setProperty('--bug-brightness', bugBrightnessSlider.value);
+    
+    // Show black slider, hide grey slider
+    blackSliderContainer.style.display = 'block';
+    greySliderContainer.style.display = 'none';
+});
+
+// Slider Event Listeners
+greyBgSlider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    setBackgroundColor(`rgb(${val}, ${val}, ${val})`);
+});
+
+bugBrightnessSlider.addEventListener('input', (e) => {
+    document.body.style.setProperty('--bug-brightness', e.target.value);
 });
 
 // --- 6. INITIALIZATION ---

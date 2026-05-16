@@ -53,7 +53,7 @@
                 <input type="checkbox" id="invertBugsToggle">
             </label>
 
-            <!-- NEW: Negative of Background Toggle -->
+            <!-- Negative of Background Toggle -->
             <label class="toggle-label" title="Makes bugs the exact opposite color of the background">
                 Negative of Background
                 <input type="checkbox" id="negativeBgToggle">
@@ -69,10 +69,30 @@
                     <button class="quick-color-btn" style="background-color: #ff0000;" data-color="#ff0000"></button>
                     <button class="quick-color-btn" style="background-color: #00ff00;" data-color="#00ff00"></button>
                     <button class="quick-color-btn" style="background-color: #0000ff;" data-color="#0000ff"></button>
+                </div>
+                
+                <!-- Second Row of Colors -->
+                <div class="quick-colors" style="margin-top: 6px; justify-content: flex-start; gap: 6px;">
                     <!-- Grey BG + Black Bug -->
                     <button class="quick-color-btn" id="btn-grey-black" style="background-color: #808080; display:flex; align-items:center; justify-content:center;" title="Grey BG + Black Bugs">
                         <div style="width: 10px; height: 10px; background-color: black; border-radius: 50%;"></div>
                     </button>
+                    <!-- Black BG + White/Grey Bug -->
+                    <button class="quick-color-btn" id="btn-black-white" style="background-color: #000000; display:flex; align-items:center; justify-content:center;" title="Black BG + White/Light Grey Bugs">
+                        <div style="width: 10px; height: 10px; background-color: white; border-radius: 50%;"></div>
+                    </button>
+                </div>
+
+                <!-- Sliders below quick backgrounds (Hidden by default) -->
+                <div id="greySliderContainer" style="display: none; margin-top: 8px;">
+                    <label>Grey Lighter/Darker:
+                        <input type="range" id="greyBgSlider" min="30" max="230" step="1" value="128">
+                    </label>
+                </div>
+                <div id="blackSliderContainer" style="display: none; margin-top: 8px;">
+                    <label>Bug Brightness (White to Grey):
+                        <input type="range" id="bugBrightnessSlider" min="0.3" max="1" step="0.05" value="1">
+                    </label>
                 </div>
             </div>
 
